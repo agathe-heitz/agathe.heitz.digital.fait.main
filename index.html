@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bienvenue</title>
+  <style>
+    @import url('https://fonts.cdnfonts.com/css/futura-pt');
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #050a30;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 3rem;
+      font-family: 'Futura PT', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+    }
+
+    #bubbles-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: min(720px, 90vw);
+    }
+
+    .bubble {
+      background: #ffffff;
+      color: #050a30;
+      font-size: 30px;
+      font-family: 'Futura PT', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+      line-height: 1.6;
+      padding: 18px 28px;
+      border-radius: 20px 20px 20px 4px;
+      display: block;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      word-break: break-word;
+    }
+
+    .bubble.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 0.95em;
+      background: #050a30;
+      margin-left: 3px;
+      vertical-align: middle;
+      animation: blink 0.7s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    #btn-container {
+      margin-top: 2.5rem;
+      width: min(720px, 90vw);
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    #btn-container.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #btn-start {
+      background: #28f3e1;
+      color: #050a30;
+      border: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 20px;
+      letter-spacing: 0.05em;
+      padding: 22px 60px;
+      cursor: pointer;
+      border-radius: 50px;
+      text-decoration: none;
+      display: inline-block;
+      transition: filter 0.2s ease, transform 0.15s ease;
+    }
+
+    #btn-start:hover {
+      filter: brightness(1.1);
+      transform: scale(1.04);
+    }
+
+    #btn-start:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bubbles-container"></div>
+
+  <div id="btn-container">
+    <a id="btn-start" href="https://sitetestagat.my.canva.site/agathe-heitz-digital-fait-main" target="_blank">Commencer</a>
+  </div>
+
+  <script>
+    // Groupes : chaque entrée = une bulle. Tableau de lignes = multi-lignes dans la même bulle.
+    const groups = [
+      ["Bonjour !", "et bienvenue sur mon site 😃"],
+      ["Vous souhaitez comprendre ce que je fais, non ?"],
+      ["Et bien cliquez, et vous saurez 😉"]
+    ];
+
+    const container = document.getElementById('bubbles-container');
+    const btnContainer = document.getElementById('btn-container');
+
+    let groupIndex = 0;
+    let lineIndex = 0;
+    let charIndex = 0;
+    let currentBubble = null;
+    let currentSpan = null;
+    let cursorEl = null;
+
+    function createBubble() {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      cursorEl = document.createElement('span');
+      cursorEl.className = 'cursor';
+      bubble.appendChild(cursorEl);
+      container.appendChild(bubble);
+      requestAnimationFrame(() => requestAnimationFrame(() => bubble.classList.add('visible')));
+      return bubble;
+    }
+
+    function addLineSpan(bubble) {
+      const span = document.createElement('span');
+      if (lineIndex > 0) {
+        bubble.insertBefore(document.createElement('br'), cursorEl);
+      }
+      bubble.insertBefore(span, cursorEl);
+      return span;
+    }
+
+    function typeNextChar() {
+      if (groupIndex >= groups.length) {
+        if (cursorEl) cursorEl.remove();
+        btnContainer.classList.add('visible');
+        return;
+      }
+
+      const group = groups[groupIndex];
+      const currentLine = group[lineIndex];
+
+      if (charIndex === 0 && lineIndex === 0) {
+        currentBubble = createBubble();
+        currentSpan = addLineSpan(currentBubble);
+      } else if (charIndex === 0) {
+        currentSpan = addLineSpan(currentBubble);
+      }
+
+      if (charIndex < currentLine.length) {
+        currentSpan.textContent += currentLine[charIndex];
+        charIndex++;
+        setTimeout(typeNextChar, 55);
+      } else {
+        lineIndex++;
+        if (lineIndex < group.length) {
+          charIndex = 0;
+          setTimeout(typeNextChar, 400);
+        } else {
+          cursorEl.remove();
+          groupIndex++;
+          lineIndex = 0;
+          charIndex = 0;
+          setTimeout(typeNextChar, 700);
+        }
+      }
+    }
+
+    setTimeout(typeNextChar, 600);
+  </script>
+</body>
+</html>
