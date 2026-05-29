@@ -20,8 +20,22 @@
       flex-direction: column;
       align-items: flex-start;
       justify-content: center;
-      padding: 2rem 3rem;
+      padding: 3rem;
       font-family: 'TT Norms Pro', 'TT Norms', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 5vw;
+        justify-content: center;
+        align-items: center;
+      }
+      #bubbles-container,
+      #signature,
+      #btn-container {
+        width: 100%;
+      }
     }
 
     #bubbles-container {
@@ -36,6 +50,7 @@
       color: #050a30;
       font-size: 30px;
       font-family: 'TT Norms Pro', 'TT Norms', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: bold;
       line-height: 1.6;
       padding: 18px 28px;
       border-radius: 20px 20px 20px 4px;
@@ -126,7 +141,7 @@
   <div id="bubbles-container"></div>
 
   <div id="signature">
-    <span style="font-family: 'Gagalin', font-size: 30px; color: #ffffff; font-style: italic;">Agathe Heitz</span>
+    <span style="font-family: 'Gagalin', cursive; font-size: 30px; color: #ffffff; font-style: italic;">Agathe Heitz</span>
   </div>
 
   <div id="btn-container">
@@ -134,22 +149,33 @@
   </div>
 
   <script>
+    // Chaque groupe = une bulle. Les segments alternent texte brut et HTML coloré.
+    // Format : tableau de lignes, chaque ligne est un tableau de segments { text, html }
+    // html:true = inséré d'un coup (pas tapé char par char), html:false = tapé normalement
     const groups = [
-     ["Bonjour !", "Bienvenue sur mon <span style='color:#28f3e1'>site</span> :)"],
-  ["Vous souhaitez comprendre ce que je fais.", "C'est bien ça ?"],
-  ["Et bien <span style='color:#28f3e1'>cliquez</span>... et vous <span style='color:#28f3e1'>saurez</span>..."]
-];
+      [
+        [{ text: "Bonjour !" }],
+        [{ text: "Bienvenue sur mon " }, { text: "site", color: true }, { text: " :)" }]
+      ],
+      [
+        [{ text: "Vous souhaitez comprendre ce que je fais." }],
+        [{ text: "C'est bien ça ?" }]
+      ],
+      [
+        [{ text: "Et bien " }, { text: "cliquez", color: true }, { text: "... et vous " }, { text: "saurez", color: true }, { text: "..." }]
+      ]
+    ];
 
+    const COLOR = "#28f3e1";
     const container = document.getElementById('bubbles-container');
     const btnContainer = document.getElementById('btn-container');
     const signature = document.getElementById('signature');
 
-    let groupIndex = 0;
-    let lineIndex = 0;
-    let charIndex = 0;
+    // State
+    let gi = 0, li = 0, si = 0, ci = 0;
     let currentBubble = null;
-    let currentSpan = null;
     let cursorEl = null;
+    let currentSegmentEl = null; // span for current segment being typed
 
     function createBubble() {
       const bubble = document.createElement('div');
@@ -162,48 +188,69 @@
       return bubble;
     }
 
-    function addLineSpan(bubble) {
+    function insertBeforeCursor(el) {
+      currentBubble.insertBefore(el, cursorEl);
+    }
+
+    function addLineBreak() {
+      insertBeforeCursor(document.createElement('br'));
+    }
+
+    function startSegment(seg) {
       const span = document.createElement('span');
-      if (lineIndex > 0) {
-        bubble.insertBefore(document.createElement('br'), cursorEl);
-      }
-      bubble.insertBefore(span, cursorEl);
-      return span;
+      if (seg.color) span.style.color = COLOR;
+      insertBeforeCursor(span);
+      currentSegmentEl = span;
     }
 
     function typeNextChar() {
-      if (groupIndex >= groups.length) {
+      if (gi >= groups.length) {
         if (cursorEl) cursorEl.remove();
         signature.classList.add('visible');
         setTimeout(() => btnContainer.classList.add('visible'), 400);
         return;
       }
 
-      const group = groups[groupIndex];
-      const currentLine = group[lineIndex];
+      const group = groups[gi];
+      const line = group[li];
+      const seg = line[si];
 
-      if (charIndex === 0 && lineIndex === 0) {
+      // Init bubble at start of group
+      if (li === 0 && si === 0 && ci === 0) {
         currentBubble = createBubble();
-        currentSpan = addLineSpan(currentBubble);
-      } else if (charIndex === 0) {
-        currentSpan = addLineSpan(currentBubble);
       }
 
-      if (charIndex < currentLine.length) {
-        currentSpan.textContent += currentLine[charIndex];
-        charIndex++;
+      // Init line break (not for first line)
+      if (si === 0 && ci === 0 && li > 0) {
+        addLineBreak();
+      }
+
+      // Init segment span
+      if (ci === 0) {
+        startSegment(seg);
+      }
+
+      if (ci < seg.text.length) {
+        currentSegmentEl.textContent += seg.text[ci];
+        ci++;
         setTimeout(typeNextChar, 55);
       } else {
-        lineIndex++;
-        if (lineIndex < group.length) {
-          charIndex = 0;
-          setTimeout(typeNextChar, 400);
+        // Move to next segment, line, or group
+        si++;
+        ci = 0;
+        if (si < line.length) {
+          setTimeout(typeNextChar, 0);
         } else {
-          cursorEl.remove();
-          groupIndex++;
-          lineIndex = 0;
-          charIndex = 0;
-          setTimeout(typeNextChar, 700);
+          si = 0;
+          li++;
+          if (li < group.length) {
+            setTimeout(typeNextChar, 400);
+          } else {
+            li = 0;
+            gi++;
+            cursorEl.remove();
+            setTimeout(typeNextChar, 700);
+          }
         }
       }
     }
