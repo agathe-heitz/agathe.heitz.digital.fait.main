@@ -22,7 +22,7 @@
       justify-content: center;
       padding: 3rem;
       font-family: 'TT Norms Pro', 'TT Norms', 'Helvetica Neue', Arial, sans-serif;
-      font-weight: 400;
+      font-weight: 500;
     }
 
     @media (max-width: 600px) {
@@ -50,7 +50,7 @@
       color: #050a30;
       font-size: 25px;
       font-family: 'TT Norms Pro', 'TT Norms', 'Helvetica Neue', Arial, sans-serif;
-      font-weight: 400;
+      font-weight: 500;
       line-height: 1.6;
       padding: 18px 28px;
       border-radius: 20px 20px 20px 4px;
@@ -162,8 +162,8 @@
         [{ text: "C'est bien ça ?" }]
       ],
       [
-[{ text: "Et bien " }, { text: "cliquez ...", color: true }],
-[{ text: "Et vous " }, { text: "saurez", color: true }, { text: " ;)" }]
+[{ text: "Et bien " }, { text: "cliquez", color: true }, { text: "... " }],
+[{ text: "et vous " }, { text: "saurez", color: true }, { text: " ;)" }]
       ]
     ];
 
@@ -197,12 +197,13 @@
       insertBeforeCursor(document.createElement('br'));
     }
 
-    function startSegment(seg) {
-      const span = document.createElement('span');
-      if (seg.color) span.style.color = COLOR;
-      insertBeforeCursor(span);
-      currentSegmentEl = span;
-    }
+function startSegment(seg) {
+  const span = document.createElement('span');
+  if (seg.color) span.style.color = COLOR;
+  if (seg.color) span.style.fontWeight = '700'; /* ← ajoute cette ligne */
+  insertBeforeCursor(span);
+  currentSegmentEl = span;
+}
 
     function typeNextChar() {
       if (gi >= groups.length) {
